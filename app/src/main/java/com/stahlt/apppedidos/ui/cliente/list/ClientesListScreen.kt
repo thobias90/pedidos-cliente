@@ -24,6 +24,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -33,13 +36,41 @@ import com.stahlt.apppedidos.R
 import com.stahlt.apppedidos.data.cliente.Cliente
 import com.stahlt.apppedidos.data.cliente.Endereco
 import com.stahlt.apppedidos.ui.theme.AppPedidosTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 @Composable
-fun ClientesListScreen(modifier: Modifier = Modifier) {
+fun ClientesListScreen(
+    modifier: Modifier = Modifier,
+    coroutineScope: CoroutineScope = rememberCoroutineScope()
+) {
+    val loading = remember { mutableStateOf(false) }
+    val hasError = remember { mutableStateOf(false) }
+    val clientes = remember { mutableStateOf(listOf<Cliente>()) }
+
+    fun load() = coroutineScope.launch {
+        loading.value = true
+        hasError.value = false
+        delay(2000)
+        val hasErrorLoading = Random.nextBoolean()
+        if (hasErrorLoading) {
+            hasError.value = true
+        } else {
+            clientes.value = clientesFake
+        }
+        loading.value = false
+    }
+
+    load()
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            ClientesTopBar()
+            ClientesTopBar(
+                onRefresh = ::load
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { /*TODO*/ }) {
@@ -50,13 +81,22 @@ fun ClientesListScreen(modifier: Modifier = Modifier) {
             }
         }
     ) { paddingValues ->
-        LoadingClientes(modifier = Modifier.padding(paddingValues))
+        if (loading.value) {
+            LoadingClientes(modifier = Modifier.padding(paddingValues))
+        } else if (hasError.value) {
+            ErrorLoadingClientes(modifier = Modifier.padding(paddingValues))
+        } else {
+            ClientesList(modifier = Modifier.padding(paddingValues), clientes = clientes.value)
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ClientesTopBar(modifier: Modifier = Modifier) {
+private fun ClientesTopBar(
+    modifier: Modifier = Modifier,
+    onRefresh: () -> Unit
+) {
     TopAppBar(
         modifier = modifier,
         colors = TopAppBarDefaults.topAppBarColors(
@@ -65,7 +105,7 @@ private fun ClientesTopBar(modifier: Modifier = Modifier) {
         ),
         title = {Text(stringResource(R.string.clientes))},
         actions = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onRefresh() }) {
                 Icon(
                     imageVector = Icons.Filled.Refresh,
                     contentDescription = stringResource(R.string.atualizar)
@@ -79,7 +119,9 @@ private fun ClientesTopBar(modifier: Modifier = Modifier) {
 @Composable
 private fun ClientesTopBarPreview() {
     AppPedidosTheme {
-        ClientesTopBar()
+        ClientesTopBar(
+            onRefresh = {}
+        )
     }
 }
 
@@ -162,7 +204,7 @@ private fun ClientesList(
     if (clientes.isEmpty()) {
         EmptyList(modifier = modifier)
     } else {
-        // Exibe lista de clientes
+        FilledList(modifier = modifier, clientes = clientes)
     }
 }
 
@@ -205,7 +247,7 @@ private fun FilledList(
     ) {
         clientes.forEachIndexed { index, cliente ->
             ListItem(
-                modifier = modifier.padding(8.dp),
+                modifier = Modifier.padding(8.dp),
                 headlineContent = {
                     Text(
                         text = "${cliente.id} - ${cliente.nome}",
@@ -236,29 +278,31 @@ private fun FilledList(
 @Composable
 fun FilledListPreview(modifier: Modifier = Modifier) {
     AppPedidosTheme {
-        FilledList(clientes = listOf(
-            Cliente(
-                id = 1,
-                nome = "Joao",
-                cpf = "1234",
-                telefone = "1234",
-                endereco = Endereco(
-                    logradouro = "Rua tal",
-                    numero = 13,
-                    cidade = "Joinville"
-                )
-            ),
-            Cliente(
-                id = 2,
-                nome = "Jose",
-                cpf = "4123",
-                telefone = "4123",
-                endereco = Endereco(
-                    logradouro = "Ituporanga",
-                    numero = 12,
-                    cidade = "Pato Branco"
-                )
-            )
-        ))
+        FilledList(clientes = clientesFake)
     }
 }
+
+val clientesFake:List<Cliente> = listOf(
+    Cliente(
+        id = 1,
+        nome = "Joao",
+        cpf = "1234",
+        telefone = "1234",
+        endereco = Endereco(
+            logradouro = "Rua tal",
+            numero = 13,
+            cidade = "Joinville"
+        )
+    ),
+    Cliente(
+        id = 2,
+        nome = "Jose",
+        cpf = "4123",
+        telefone = "4123",
+        endereco = Endereco(
+            logradouro = "Ituporanga",
+            numero = 12,
+            cidade = "Pato Branco"
+        )
+    )
+)
