@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -43,20 +42,23 @@ fun ClientesListScreen(
     modifier: Modifier = Modifier,
     viewModel: ClientesListViewModel = viewModel()
 ) {
-
+    val success = !viewModel.loading.value && !viewModel.hasError.value
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             ClientesTopBar(
-                onRefresh = viewModel::load
+                onRefresh = viewModel::load,
+                showRefreshAction = success
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.adicionar)
-                )
+            if (success) {
+                FloatingActionButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.adicionar)
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -80,7 +82,8 @@ fun ClientesListScreen(
 @Composable
 private fun ClientesTopBar(
     modifier: Modifier = Modifier,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    showRefreshAction: Boolean
 ) {
     TopAppBar(
         modifier = modifier,
@@ -90,11 +93,13 @@ private fun ClientesTopBar(
         ),
         title = {Text(stringResource(R.string.clientes))},
         actions = {
-            IconButton(onClick = { onRefresh() }) {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = stringResource(R.string.atualizar)
-                )
+            if (showRefreshAction) {
+                IconButton(onClick = { onRefresh() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Refresh,
+                        contentDescription = stringResource(R.string.atualizar)
+                    )
+                }
             }
         }
     )
@@ -105,7 +110,8 @@ private fun ClientesTopBar(
 private fun ClientesTopBarPreview() {
     AppPedidosTheme {
         ClientesTopBar(
-            onRefresh = {}
+            onRefresh = {},
+            showRefreshAction = true
         )
     }
 }
