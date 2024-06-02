@@ -62,6 +62,7 @@ fun ClientesListScreen(
         } else if (viewModel.hasError.value) {
             ErrorLoadingClientes(
                 modifier = Modifier.padding(paddingValues),
+                onTryAgainPressed = viewModel::load
             )
         } else {
             ClientesList(
@@ -136,7 +137,7 @@ private fun LoadingClientesPreview(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ErrorLoadingClientes(modifier: Modifier = Modifier) {
+private fun ErrorLoadingClientes(modifier: Modifier = Modifier, onTryAgainPressed: () -> Unit) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -161,7 +162,7 @@ private fun ErrorLoadingClientes(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.primary
         )
         ElevatedButton(
-            onClick = { /*TODO*/ },
+            onClick = onTryAgainPressed,
             modifier = Modifier.padding(top = 16.dp)
         ) {
             Text(stringResource(R.string.tentar_novamente))
@@ -173,7 +174,9 @@ private fun ErrorLoadingClientes(modifier: Modifier = Modifier) {
 @Composable
 private fun ErrorLoadingClientesPreview(modifier: Modifier = Modifier) {
     AppPedidosTheme {
-        ErrorLoadingClientes()
+        ErrorLoadingClientes(
+            onTryAgainPressed = {}
+        )
     }
 }
 
