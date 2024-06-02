@@ -24,52 +24,28 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.stahlt.apppedidos.R
 import com.stahlt.apppedidos.data.cliente.Cliente
 import com.stahlt.apppedidos.data.cliente.Endereco
 import com.stahlt.apppedidos.ui.theme.AppPedidosTheme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 @Composable
 fun ClientesListScreen(
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope = rememberCoroutineScope()
+    viewModel: ClientesListViewModel = viewModel()
 ) {
-    val loading = remember { mutableStateOf(false) }
-    val hasError = remember { mutableStateOf(false) }
-    val clientes = remember { mutableStateOf(listOf<Cliente>()) }
-
-    fun load() = coroutineScope.launch {
-        loading.value = true
-        hasError.value = false
-        delay(2000)
-        val hasErrorLoading = Random.nextBoolean()
-        if (hasErrorLoading) {
-            hasError.value = true
-        } else {
-            clientes.value = clientesFake
-        }
-        loading.value = false
-    }
-
-    load()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             ClientesTopBar(
-                onRefresh = ::load
+                onRefresh = viewModel::load
             )
         },
         floatingActionButton = {
@@ -81,12 +57,17 @@ fun ClientesListScreen(
             }
         }
     ) { paddingValues ->
-        if (loading.value) {
+        if (viewModel.loading.value) {
             LoadingClientes(modifier = Modifier.padding(paddingValues))
-        } else if (hasError.value) {
-            ErrorLoadingClientes(modifier = Modifier.padding(paddingValues))
+        } else if (viewModel.hasError.value) {
+            ErrorLoadingClientes(
+                modifier = Modifier.padding(paddingValues),
+            )
         } else {
-            ClientesList(modifier = Modifier.padding(paddingValues), clientes = clientes.value)
+            ClientesList(
+                modifier = Modifier.padding(paddingValues),
+                clientes = viewModel.clientes.value
+            )
         }
     }
 }
