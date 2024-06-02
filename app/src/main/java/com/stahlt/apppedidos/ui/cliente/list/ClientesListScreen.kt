@@ -47,11 +47,11 @@ fun ClientesListScreen(
         topBar = {
             ClientesTopBar(
                 onRefresh = viewModel::load,
-                showRefreshAction = viewModel.uiState.value.success
+                showRefreshAction = viewModel.uiState.success
             )
         },
         floatingActionButton = {
-            if (viewModel.uiState.value.success) {
+            if (viewModel.uiState.success) {
                 FloatingActionButton(onClick = { /*TODO*/ }) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -61,9 +61,9 @@ fun ClientesListScreen(
             }
         }
     ) { paddingValues ->
-        if (viewModel.uiState.value.loading) {
+        if (viewModel.uiState.loading) {
             LoadingClientes(modifier = Modifier.padding(paddingValues))
-        } else if (viewModel.uiState.value.hasError) {
+        } else if (viewModel.uiState.hasError) {
             ErrorLoadingClientes(
                 modifier = Modifier.padding(paddingValues),
                 onTryAgainPressed = viewModel::load
@@ -71,7 +71,7 @@ fun ClientesListScreen(
         } else {
             ClientesList(
                 modifier = Modifier.padding(paddingValues),
-                clientes = viewModel.uiState.value.clientes
+                clientes = viewModel.uiState.clientes
             )
         }
     }
