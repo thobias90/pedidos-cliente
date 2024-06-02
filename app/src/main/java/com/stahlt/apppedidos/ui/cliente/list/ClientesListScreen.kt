@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
@@ -226,10 +229,10 @@ private fun FilledList(
     modifier: Modifier = Modifier,
     clientes: List<Cliente>
 ) {
-    Column(
+    LazyColumn(
         modifier = modifier.padding(vertical = 4.dp)
     ) {
-        clientes.forEachIndexed { index, cliente ->
+        itemsIndexed(clientes) { index, cliente ->
             ListItem(
                 modifier = Modifier.padding(8.dp),
                 headlineContent = {
