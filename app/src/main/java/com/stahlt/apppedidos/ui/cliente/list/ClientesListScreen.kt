@@ -183,7 +183,7 @@ private fun ErrorLoadingClientesPreview(modifier: Modifier = Modifier) {
 @Composable
 private fun ClientesList(
     modifier: Modifier = Modifier,
-    clientes: List<Cliente> = listOf<Cliente>()
+    clientes: List<Cliente> = listOf()
 ) {
     if (clientes.isEmpty()) {
         EmptyList(modifier = modifier)
@@ -195,7 +195,7 @@ private fun ClientesList(
 @Composable
 private fun EmptyList(modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
