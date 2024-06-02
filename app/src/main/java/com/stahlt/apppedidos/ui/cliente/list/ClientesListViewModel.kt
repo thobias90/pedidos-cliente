@@ -8,27 +8,40 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+data class ClientesListUIState(
+    val loading: Boolean = false,
+    val hasError: Boolean = false,
+    val clientes: List<Cliente> = listOf()
+) {
+    val success get(): Boolean = !loading && !hasError
+}
 class ClientesListViewModel: ViewModel() {
-    val loading = mutableStateOf(false)
-    val hasError = mutableStateOf(false)
-    val clientes = mutableStateOf(listOf<Cliente>())
+    val uiState = mutableStateOf(ClientesListUIState())
 
     init {
         load()
     }
 
     fun load() {
-        loading.value = true
-        hasError.value = false
+        uiState.value = uiState.value.copy(
+            loading = true,
+            hasError = false
+        )
         viewModelScope.launch {
             delay(2000)
             val hasErrorLoading = Random.nextBoolean()
-            if (hasErrorLoading) {
-                hasError.value = true
+            uiState.value = if(hasErrorLoading) {
+                uiState.value.copy(
+                    hasError = true,
+                    loading = false
+                )
             } else {
-                clientes.value = clientesFake
+                uiState.value.copy(
+                    hasError = false,
+                    loading = false,
+                    clientes = clientesFake
+                )
             }
-            loading.value = false
         }
     }
 }
