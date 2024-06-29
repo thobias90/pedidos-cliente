@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.stahlt.apppedidos.ui.AppPedidos
 import com.stahlt.apppedidos.ui.cliente.list.ClientesListScreen
 import com.stahlt.apppedidos.ui.theme.AppPedidosTheme
 
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppPedidosTheme {
-                ClientesListScreen()
+                AppPedidos()
             }
         }
     }
