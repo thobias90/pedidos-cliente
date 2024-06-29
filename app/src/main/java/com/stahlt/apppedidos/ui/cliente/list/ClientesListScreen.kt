@@ -1,19 +1,16 @@
 package com.stahlt.apppedidos.ui.cliente.list
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -36,11 +33,15 @@ import com.stahlt.apppedidos.R
 import com.stahlt.apppedidos.data.cliente.Cliente
 import com.stahlt.apppedidos.data.cliente.Endereco
 import com.stahlt.apppedidos.ui.theme.AppPedidosTheme
+import com.stahlt.apppedidos.ui.utils.composables.DefaultErrorLoading
+import com.stahlt.apppedidos.ui.utils.composables.DefaultLoading
 
 @Composable
 fun ClientesListScreen(
     modifier: Modifier = Modifier,
-    viewModel: ClientesListViewModel = viewModel()
+    viewModel: ClientesListViewModel = viewModel(),
+    onClientePressed: (Cliente) -> Unit,
+    onAddPressed: () -> Unit
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -52,7 +53,7 @@ fun ClientesListScreen(
         },
         floatingActionButton = {
             if (viewModel.uiState.success) {
-                FloatingActionButton(onClick = { /*TODO*/ }) {
+                FloatingActionButton(onClick = onAddPressed) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(R.string.adicionar)
@@ -62,16 +63,21 @@ fun ClientesListScreen(
         }
     ) { paddingValues ->
         if (viewModel.uiState.loading) {
-            LoadingClientes(modifier = Modifier.padding(paddingValues))
+            DefaultLoading(
+                modifier = modifier,
+                text = stringResource(R.string.carregando_clientes)
+            )
         } else if (viewModel.uiState.hasError) {
-            ErrorLoadingClientes(
+            DefaultErrorLoading(
                 modifier = Modifier.padding(paddingValues),
+                text = stringResource(R.string.nao_foi_poss_vel_carregar_os_clientes),
                 onTryAgainPressed = viewModel::load
             )
         } else {
             ClientesList(
                 modifier = Modifier.padding(paddingValues),
-                clientes = viewModel.uiState.clientes
+                clientes = viewModel.uiState.clientes,
+                onClientePressed = onClientePressed
             )
         }
     }
@@ -115,88 +121,21 @@ private fun ClientesTopBarPreview() {
     }
 }
 
-@Composable
-private fun LoadingClientes(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.size(60.dp)
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = stringResource(R.string.carregando_clientes),
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.titleLarge
-        )
-    }
-}
-
-@Preview(showBackground = true, heightDp = 300)
-@Composable
-private fun LoadingClientesPreview(modifier: Modifier = Modifier) {
-    AppPedidosTheme {
-        LoadingClientes()
-    }
-}
-
-@Composable
-private fun ErrorLoadingClientes(modifier: Modifier = Modifier, onTryAgainPressed: () -> Unit) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Filled.CloudOff,
-            contentDescription = stringResource(R.string.erro_ao_carregar),
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(80.dp)
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
-            text = stringResource(R.string.nao_foi_poss_vel_carregar_os_clientes),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
-            text = stringResource(R.string.aguarde_um_momento_e_tente_novamente),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        ElevatedButton(
-            onClick = onTryAgainPressed,
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text(stringResource(R.string.tentar_novamente))
-        }
-    }
-}
-
-@Preview(showBackground = true, heightDp = 400)
-@Composable
-private fun ErrorLoadingClientesPreview(modifier: Modifier = Modifier) {
-    AppPedidosTheme {
-        ErrorLoadingClientes(
-            onTryAgainPressed = {}
-        )
-    }
-}
 
 @Composable
 private fun ClientesList(
     modifier: Modifier = Modifier,
-    clientes: List<Cliente> = listOf()
+    clientes: List<Cliente> = listOf(),
+    onClientePressed: (Cliente) -> Unit
 ) {
     if (clientes.isEmpty()) {
         EmptyList(modifier = modifier)
     } else {
-        FilledList(modifier = modifier, clientes = clientes)
+        FilledList(
+            modifier = modifier ,
+            clientes = clientes,
+            onClientePressed = onClientePressed
+        )
     }
 }
 
@@ -232,14 +171,17 @@ fun EmptyListPreview(modifier: Modifier = Modifier) {
 @Composable
 private fun FilledList(
     modifier: Modifier = Modifier,
-    clientes: List<Cliente>
+    clientes: List<Cliente>,
+    onClientePressed: (Cliente) -> Unit
 ) {
     LazyColumn(
         modifier = modifier.padding(vertical = 4.dp)
     ) {
         itemsIndexed(clientes) { index, cliente ->
             ListItem(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable { onClientePressed(cliente) },
                 headlineContent = {
                     Text(
                         text = "${cliente.id} - ${cliente.nome}",
@@ -270,7 +212,7 @@ private fun FilledList(
 @Composable
 fun FilledListPreview(modifier: Modifier = Modifier) {
     AppPedidosTheme {
-        FilledList(clientes = clientesFake)
+        FilledList(clientes = clientesFake, onClientePressed = {})
     }
 }
 
